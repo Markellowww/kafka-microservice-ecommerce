@@ -1,0 +1,11 @@
+src/main/java/
+├── config/
+│   └── KafkaConfig.java
+├── controller/
+│   └── OrderController.java
+├── service/
+│   ├── KafkaConsumerService.java
+│   └── KafkaProducerService.java
+├── model/
+│   └── Order.java
+└── OrderIngestionServiceApplication.java

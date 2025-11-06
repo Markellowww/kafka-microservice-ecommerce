@@ -1,0 +1,17 @@
+server:
+  port: 8081
+spring:
+  application:
+    name: order_ingestion_service
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    consumer:
+      auto-offset-reset: earliest
+      group-id: order_ingestion_service
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+order_processing_service:
+  uri: ${SERVICE_B_URL}
