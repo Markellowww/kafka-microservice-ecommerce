@@ -19,7 +19,6 @@
 - PostgreSQL: Сохраняет готовые заказы
 - Kafka: Producer (публикует в orders.processed)
 
-
 ## Компоненты
 
 1. Kafka Topics:

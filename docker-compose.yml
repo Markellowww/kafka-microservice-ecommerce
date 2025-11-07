@@ -1,17 +1,20 @@
 services:
   kafka:
     image: apache/kafka:latest
+    container_name: broker
     environment:
-      - KAFKA_CFG_NODE_ID=0
-      - KAFKA_CFG_PROCESS_ROLES=broker,controller
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
-      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
-      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
-      - KAFKA_KRAFT_CLUSTER_ID=mk-1
-      - KAFKA_CFG_LOG_DIRS=/bitnami/kafka/data
-    ports:
-      - "9092:9092"
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://localhost:9092,CONTROLLER://localhost:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_NUM_PARTITIONS: 3
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
@@ -21,10 +24,10 @@ services:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
 
-  order_ingestion_service:
+  ingestion:
     build:
       context: .
-      dockerfile: order_ingestion_service/Dockerfile
+      dockerfile: ingestion/Dockerfile
     depends_on:
       - kafka
     environment:
@@ -34,3 +37,36 @@ services:
       SERVICE_B_URL: http://service-b:8080
     ports:
       - "8081:8080"
+
+  processing:
+    build:
+      context: .
+      dockerfile: processing/Dockerfile
+#    depends_on:
+#      - redis
+    environment:
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+
+      # URLs до других сервисов
+      SERVICE_C_URL: http://service-c:8080
+    ports:
+      - "8082:8080"
+
+  fulfillment-c:
+    build:
+      context: .
+      dockerfile: fulfillment/Dockerfile
+    depends_on:
+#      - postgres
+      - kafka
+    environment:
+    # PostgreSQL
+      DATASOURCE_URL: jdbc:postgresql://postgres:5432/service_c_db
+      DATASOURCE_USERNAME: user
+      DATASOURCE_PASSWORD: password
+      # Kafka
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "8083:8080"
