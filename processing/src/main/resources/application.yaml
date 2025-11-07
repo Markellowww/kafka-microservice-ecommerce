@@ -1,9 +1,9 @@
 spring:
   application:
-    name: order_processing_service
+    name: processing
   data:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
-order_fulfillment_service:
+fulfillment:
   uri: ${SERVICE_C_URL}

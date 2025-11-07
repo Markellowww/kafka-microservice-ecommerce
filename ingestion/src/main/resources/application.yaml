@@ -1,6 +1,6 @@
 spring:
   application:
-    name: order_ingestion_service
+    name: ingestion
   data:
     mongodb:
       uri: ${MONGODB_URI}
@@ -8,7 +8,7 @@ spring:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
     consumer:
       auto-offset-reset: earliest
-      group-id: order_ingestion_service
+      group-id: ingestion
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 order_processing_service:

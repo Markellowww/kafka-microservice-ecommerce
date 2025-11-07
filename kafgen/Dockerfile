@@ -9,9 +9,9 @@ COPY kafgen/pom.xml ./kafgen/
 
 RUN mvn -f pom.xml clean package -DskipTests
 
-COPY ./fulfillment/src ./fulfillment/src
-RUN mvn -f fulfillment/pom.xml clean package -DskipTests
+COPY ./kafgen/src ./kafgen/src
+RUN mvn -f kafgen/pom.xml clean package -DskipTests
 
 FROM amazoncorretto:21-al2023
-COPY --from=build /app/fulfillment/target/fulfillment-1.0-SNAPSHOT.jar app.jar
+COPY --from=build /app/kafgen/target/kafgen-1.0-SNAPSHOT.jar app.jar
 ENTRYPOINT ["java", "-jar", "/app.jar"]

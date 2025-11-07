@@ -1,6 +1,6 @@
 spring:
   application:
-    name: order_fulfillment_service
+    name: fulfillment
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
     producer:

@@ -5,6 +5,7 @@
     <file url="file://$PROJECT_DIR$/fulfillment/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/ingestion/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/ingestion/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/kafgen/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/order_fulfillment_service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/order_ingestion_service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/order_processing_service/src/main/java" charset="UTF-8" />

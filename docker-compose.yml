@@ -54,7 +54,7 @@ services:
     ports:
       - "8082:8080"
 
-  fulfillment-c:
+  fulfillment:
     build:
       context: .
       dockerfile: fulfillment/Dockerfile
@@ -70,3 +70,14 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     ports:
       - "8083:8080"
+
+  kafgen:
+    build:
+      context: .
+      dockerfile: kafgen/Dockerfile
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "8084:8080"
