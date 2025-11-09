@@ -25,6 +25,6 @@ public class OrderController {
     @PostMapping
     public void createOrder() {
         Order order = generator.generateOrder();
-        orderService.saveOrder(order);
+        orderService.saveOrder(order.toString());
     }
 }

@@ -1,6 +1,5 @@
 package com.markellowww.kafgen.services;
 
-import com.markellowww.kafgen.models.Order;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
@@ -10,13 +9,13 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class OrderService {
-    private final KafkaTemplate<String, Order> kafkaTemplate;
+    private final KafkaTemplate<String, String> kafkaTemplate;
 
-    public OrderService(KafkaTemplate<String, Order> kafkaTemplate) {
+    public OrderService(KafkaTemplate<String, String> kafkaTemplate) {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    public void saveOrder(Order order) {
+    public void saveOrder(String order) {
         kafkaTemplate.send("orders.incoming", order);
     }
 }

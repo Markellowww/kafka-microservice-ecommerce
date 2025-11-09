@@ -10,6 +10,7 @@ COPY kafgen/pom.xml ./kafgen/
 RUN mvn -f pom.xml clean package -DskipTests
 
 COPY ./kafgen/src ./kafgen/src
+
 RUN mvn -f kafgen/pom.xml clean package -DskipTests
 
 FROM amazoncorretto:21-al2023
