@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * @author Markelloww
@@ -20,11 +20,9 @@ import java.util.Random;
 
 @Component
 public class OrderGenerator {
-    private final Random random;
     private final Faker faker;
 
     public OrderGenerator() {
-        random = new Random();
         faker = new Faker();
     }
 
@@ -54,16 +52,16 @@ public class OrderGenerator {
 
     private OrderStatus randomOrderStatus() {
         OrderStatus[] statuses = OrderStatus.values();
-        return statuses[random.nextInt(statuses.length)];
+        return statuses[ThreadLocalRandom.current().nextInt(statuses.length)];
     }
 
     private ShippingType randomShippingType() {
         ShippingType[] shippingTypes = ShippingType.values();
-        return shippingTypes[random.nextInt(shippingTypes.length)];
+        return shippingTypes[ThreadLocalRandom.current().nextInt(shippingTypes.length)];
     }
 
     private List<OrderItem> randomOrderItems() {
-        int itemsCount = random.nextInt(5);
+        int itemsCount = ThreadLocalRandom.current().nextInt(5);
 
         List<OrderItem> orderItems = new ArrayList<>();
         for (int i = 0; i < itemsCount; i++) {
@@ -89,8 +87,10 @@ public class OrderGenerator {
 
     private Instant generateTimestamp() {
         long currentTime = System.currentTimeMillis();
-        long thirtyDaysAgo = currentTime - (30L * 24 * 60 * 60 * 1000);
-        long randomTime = thirtyDaysAgo + (long) (random.nextDouble() * (currentTime - thirtyDaysAgo));
+        long oneYearInMillis = 365L * 24 * 60 * 60 * 1000;
+        long oneYearAgo = currentTime - oneYearInMillis;
+
+        long randomTime = ThreadLocalRandom.current().nextLong(oneYearAgo, currentTime);
 
         return Instant.ofEpochMilli(randomTime);
     }

@@ -11,6 +11,10 @@ services:
       KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@kafka:9093
       KAFKA_KRAFT_CLUSTER_ID: mk-1
       KAFKA_CFG_LOG_DIRS: /bitnami/kafka/data
+      KAFKA_CFG_DEFAULT_REPLICATION_FACTOR: 3
+      KAFKA_CFG_MIN_INSYNC_REPLICAS: 2
+      KAFKA_CFG_MESSAGE_MAX_BYTES: 32768
+      KAFKA_CFG_NUM_PARTITIONS: 4
     volumes:
       - kafka_data:/bitnami/kafka/data
 

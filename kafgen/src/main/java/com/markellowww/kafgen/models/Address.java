@@ -1,9 +1,7 @@
 package com.markellowww.kafgen.models;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.*;
 
 /**
  * @author Markelloww
@@ -13,8 +11,27 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "Delivery address")
 public class Address {
+
+    @Schema(
+            description = "City",
+            example = "Moscow",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
     private String city;
+
+    @Schema(
+            description = "Street and building",
+            example = "Tverskaya St., Building 15",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
     private String street;
+
+    @Schema(
+            description = "Zip-code",
+            example = "125009",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
     private String zipCode;
 }
