@@ -3,13 +3,20 @@ spring:
     name: ingestion
   data:
     mongodb:
-      uri: ${MONGODB_URI}
+      uri: mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongo:27017/raw_orders?authSource=admin
+      auto-index-creation: true
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    bootstrap-servers: ${KAFKA_BOOTSTRAPSERVERS}
     consumer:
+      group-id: ingestion-group
       auto-offset-reset: earliest
-      group-id: ingestion
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-order_processing_service:
-  uri: ${SERVICE_B_URL}
+      isolation-level: read_committed
+      heartbeat-interval: 15000
+      max-poll-interval: 300000
+      session-timeout-ms: 45000
+logging:
+  level:
+    com:
+      markellowww:
+        ingestion:
+          DEBUG

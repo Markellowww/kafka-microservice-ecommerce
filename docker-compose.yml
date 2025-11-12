@@ -11,10 +11,6 @@ services:
       KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@kafka:9093
       KAFKA_KRAFT_CLUSTER_ID: mk-1
       KAFKA_CFG_LOG_DIRS: /bitnami/kafka/data
-      KAFKA_CFG_DEFAULT_REPLICATION_FACTOR: 3
-      KAFKA_CFG_MIN_INSYNC_REPLICAS: 2
-      KAFKA_CFG_MESSAGE_MAX_BYTES: 32768
-      KAFKA_CFG_NUM_PARTITIONS: 4
     volumes:
       - kafka_data:/bitnami/kafka/data
 
@@ -30,6 +26,8 @@ services:
     build:
       context: .
       dockerfile: kafgen/Dockerfile
+    environment:
+      KAFKA_BOOTSTRAPSERVERS: kafka:9092
     depends_on:
       - kafka
     ports:
@@ -39,15 +37,38 @@ services:
     build:
       context: .
       dockerfile: ingestion/Dockerfile
+    environment:
+      KAFKA_BOOTSTRAPSERVERS: kafka:9092
+      MONGO_USER: mongo
+      MONGO_PASSWORD: mongo
+
+#      URLs до других сервисов
+#      SERVICE_B_URL: http://service-b:8080
     depends_on:
       - kafka
-    environment:
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-
-      # URLs до других сервисов
-      SERVICE_B_URL: http://service-b:8080
+      - mongo
     ports:
       - "8081:8080"
+
+  mongo:
+    image: mongodb/mongodb-community-server:7.0-ubi8
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongo
+      MONGO_INITDB_ROOT_PASSWORD: mongo
+      MONGO_INITDB_DATABASE: raw_orders
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+
+
+
+
+
+
+
+
 
   processing:
     build:
@@ -84,3 +105,4 @@ services:
 
 volumes:
   kafka_data:
+  mongodb_data:

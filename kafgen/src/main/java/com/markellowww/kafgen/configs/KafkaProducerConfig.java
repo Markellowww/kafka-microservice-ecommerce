@@ -1,5 +1,6 @@
 package com.markellowww.kafgen.configs;
 
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,25 +21,25 @@ import java.util.Map;
 @Configuration
 @EnableKafka
 public class KafkaProducerConfig {
-    @Value("${kafka.bootstrap-servers}")
+    @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
 
-    @Value("${kafka.producer.acks}")
+    @Value("${spring.kafka.producer.acks}")
     private String acks;
 
-    @Value("${kafka.producer.retries}")
+    @Value("${spring.kafka.producer.retries}")
     private String retries;
 
-    @Value("${kafka.producer.enable-idempotence}")
+    @Value("${spring.kafka.producer.enable-idempotence}")
     private String idempotence;
 
-    @Value("${kafka.producer.batch-size}")
+    @Value("${spring.kafka.producer.batch-size}")
     private String batchSize;
 
-    @Value("${kafka.producer.max-in-flight-requests-per-connection}")
+    @Value("${spring.kafka.producer.max-in-flight-requests-per-connection}")
     private String maxInFlight;
 
-    @Value("${kafka.producer.linger-ms}")
+    @Value("${spring.kafka.producer.linger-ms}")
     private String lingerMs;
 
     @Bean

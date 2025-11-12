@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.KafkaException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import tools.jackson.core.JacksonException;
 
 import java.time.Instant;
 
@@ -20,8 +21,8 @@ import java.time.Instant;
 public class GlobalExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    @ExceptionHandler(SerializationException.class)
-    public ResponseEntity<ErrorResponseDto> handleSerializationException(SerializationException e) {
+    @ExceptionHandler(JacksonException.class)
+    public ResponseEntity<ErrorResponseDto> handleSerializationException(JacksonException e) {
         logger.warn("Order serialization error: {}", e.getMessage());
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
@@ -64,7 +65,6 @@ public class GlobalExceptionHandler {
                         .build()
         );
     }
-
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponseDto> handleIllegalArgumentExceptionException(IllegalArgumentException e) {

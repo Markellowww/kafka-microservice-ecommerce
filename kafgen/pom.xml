@@ -36,11 +36,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.springframework.kafka</groupId>
-      <artifactId>spring-kafka</artifactId>
-      <version>4.0.0-RC1</version>
-    </dependency>
-    <dependency>
       <groupId>com.github.javafaker</groupId>
       <artifactId>javafaker</artifactId>
       <version>1.0.2</version>
@@ -51,6 +46,7 @@
         </exclusion>
       </exclusions>
     </dependency>
+<!--    TODO: обновить зависимость     -->
     <dependency>
       <groupId>org.springdoc</groupId>
       <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
