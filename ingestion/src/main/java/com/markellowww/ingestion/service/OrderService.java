@@ -1,13 +1,17 @@
 package com.markellowww.ingestion.service;
 
+import com.markellowww.ingestion.enums.ShippingType;
 import com.markellowww.ingestion.models.Order;
 import com.markellowww.ingestion.repositories.OrderRepository;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
+
+import java.time.Instant;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * @author Markelloww
@@ -19,22 +23,78 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final ObjectMapper objectMapper;
+    private final ProcessingService processingService;
 
-    public OrderService(OrderRepository orderRepository, @Qualifier("objectMapper") ObjectMapper objectMapper) {
+    public OrderService(OrderRepository orderRepository,
+                        ObjectMapper objectMapper,
+                        ProcessingService processingService) {
         this.orderRepository = orderRepository;
         this.objectMapper = objectMapper;
+        this.processingService = processingService;
     }
 
-    public void save(Order order) {
-        logger.debug("Order {} deserialized from JSON, sending to MongoDB", order.getOrderId());
-        orderRepository.save(order);
-        logger.debug("Order {} was successfully sent to MongoDB", order.getOrderId());
+    public void saveToMongo(Order order) {
+        logger.debug("Order {} deserialized from JSON", order.getOrderId());
+        if (orderRepository.existsById(order.getOrderId())) {
+            logger.warn("Order {} already saved, skipping", order.getOrderId());
+            return;
+        }
+        try {
+            logger.debug("Sending order {} to MongoDB", order.getOrderId());
+            orderRepository.save(order);
+            logger.debug("Order {} was successfully sent to MongoDB", order.getOrderId());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to save order to MongoDB: " + e.getMessage(), e);
+        }
+    }
+
+    public void sendOrderToProcessing(Order order) {
+        logger.debug("Order {} is sending on /api/process-order", order.getOrderId());
+
+        String orderJson = objectMapper.writeValueAsString(order);
+        ResponseEntity<String> response = processingService.processOrder(orderJson);
+
+        if (response.getStatusCode().is2xxSuccessful()) {
+            logger.debug("Order {} successfully sent for processing", order.getOrderId());
+        } else {
+            throw new RuntimeException("Processing service returned non-2xx status: " + response.getStatusCode());
+        }
     }
 
     public Order deserializeOrder(ConsumerRecord<String, String> orderJson) {
-        logger.debug("Processing the received JSON order");
-        Order order = objectMapper.readValue(orderJson.value(), Order.class);
-        logger.debug("Order {} was successfully deserialized", order.getOrderId());
-        return order;
+        try {
+            logger.debug("Processing the received JSON order");
+            Order order = objectMapper.readValue(orderJson.value(), Order.class);
+            validateOrder(order);
+            logger.debug("Order {} was successfully deserialized", order.getOrderId());
+            return order;
+        } catch (Exception e) {
+            throw new RuntimeException("Order deserialization failed", e);
+        }
+    }
+
+    public void determineShippingType(Order order) {
+        if (order.getShippingType() != null) {
+            logger.warn("Order {} already has ShippingType, skipping", order.getOrderId());
+            return;
+        }
+
+        logger.debug("ShippingType of order {} is being determined", order.getOrderId());
+        order.setShippingType(randomShippingType());
+        order.setProcessedAt(Instant.now());
+        logger.debug("ShippingType of order {} has been determined", order.getOrderId());
+    }
+
+    private ShippingType randomShippingType() {
+        ShippingType[] shippingTypes = ShippingType.values();
+        return shippingTypes[ThreadLocalRandom.current().nextInt(shippingTypes.length)];
+    }
+
+    private void validateOrder(Order order) {
+        if (order == null) {
+            throw new IllegalArgumentException("Order cannot be null");
+        } else if (order.getOrderId() == null) {
+            throw new IllegalArgumentException("Order ID cannot be null");
+        }
     }
 }

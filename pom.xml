@@ -21,6 +21,7 @@
     <relativePath/>
   </parent>
 
+  <!-- TODO: Сделать переменные с версиями, обновить библиотеки  -->
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>

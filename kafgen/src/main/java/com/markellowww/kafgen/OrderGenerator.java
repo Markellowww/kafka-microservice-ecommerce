@@ -2,7 +2,6 @@ package com.markellowww.kafgen;
 
 import com.github.javafaker.Faker;
 import com.markellowww.kafgen.enums.OrderStatus;
-import com.markellowww.kafgen.enums.ShippingType;
 import com.markellowww.kafgen.models.Address;
 import com.markellowww.kafgen.models.Order;
 import com.markellowww.kafgen.models.OrderItem;
@@ -33,12 +32,10 @@ public class OrderGenerator {
                 .orderId(generateOrderId())
                 .customerId(generateCustomerId())
                 .status(randomOrderStatus())
-                .shippingType(randomShippingType())
                 .items(items)
                 .totalAmount(calculateTotalAmount(items))
                 .deliveryAddress(generateAddress())
                 .timestamp(generateTimestamp())
-                .processedAt(null)
                 .build();
     }
 
@@ -53,11 +50,6 @@ public class OrderGenerator {
     private OrderStatus randomOrderStatus() {
         OrderStatus[] statuses = OrderStatus.values();
         return statuses[ThreadLocalRandom.current().nextInt(statuses.length)];
-    }
-
-    private ShippingType randomShippingType() {
-        ShippingType[] shippingTypes = ShippingType.values();
-        return shippingTypes[ThreadLocalRandom.current().nextInt(shippingTypes.length)];
     }
 
     private List<OrderItem> randomOrderItems() {

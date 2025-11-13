@@ -27,8 +27,9 @@ public class KafkaConsumer {
         logger.debug("Received message from Kafka topic: orders.incoming");
 
         Order order = orderService.deserializeOrder(orderJson);
-
-        orderService.save(order);
+        orderService.determineShippingType(order);
+        orderService.saveToMongo(order);
+        orderService.sendOrderToProcessing(order);
 
         ack.acknowledge();
         logger.debug("Message acknowledged successfully for order {}", order.getOrderId());

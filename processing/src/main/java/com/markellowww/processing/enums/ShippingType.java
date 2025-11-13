@@ -1,4 +1,4 @@
-package com.markellowww.kafgen.enums;
+package com.markellowww.processing.enums;
 
 /**
  * @author Markelloww

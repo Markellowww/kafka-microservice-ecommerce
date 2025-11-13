@@ -29,3 +29,18 @@
 - MongoDB: Все входящие заказы (сырые данные)
 - Redis: Кеш срочных заказов + кеш цен/акций
 - PostgreSQL: Обработанные заказы (готовые к отгрузке)
+
+
+private String orderId;
+private String customerId;
+private OrderStatus status;
+private ShippingType shippingType;
+private List<OrderItem> items;
+private BigDecimal totalAmount;
+private Address deliveryAddress;
+private Instant timestamp;
+private Instant processedAt;
+// Следующие поля добавить и заполнить!
+private String trackingNumber;
+private String assignedWarehouse;
+private Instant estimatedDelivery;

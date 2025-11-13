@@ -1,3 +1,5 @@
+server:
+  port: 8081
 spring:
   application:
     name: ingestion
@@ -20,3 +22,13 @@ logging:
       markellowww:
         ingestion:
           DEBUG
+processing:
+  service:
+    url: ${PROCESSING_URL}
+feign:
+  client:
+    config:
+      processing-service:
+        connectTimeout: 5000
+        readTimeout: 5000
+        loggerLevel: basic

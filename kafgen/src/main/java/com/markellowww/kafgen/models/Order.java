@@ -1,7 +1,6 @@
 package com.markellowww.kafgen.models;
 
 import com.markellowww.kafgen.enums.OrderStatus;
-import com.markellowww.kafgen.enums.ShippingType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -44,13 +43,6 @@ public class Order {
     private OrderStatus status;
 
     @Schema(
-            description = "Shipping type",
-            requiredMode = Schema.RequiredMode.REQUIRED,
-            implementation = ShippingType.class
-    )
-    private ShippingType shippingType;
-
-    @Schema(
             description = "List of items in the order",
             requiredMode = Schema.RequiredMode.REQUIRED
     )
@@ -75,15 +67,4 @@ public class Order {
             requiredMode = Schema.RequiredMode.REQUIRED
     )
     private Instant timestamp;
-
-    @Schema(
-            description = "Order processing timestamp",
-            example = "1650330233.134"
-    )
-    private Instant processedAt;
-
-    // Только для выходного события
-//    private String trackingNumber;
-//    private String assignedWarehouse;
-//    private Instant estimatedDelivery;
 }
