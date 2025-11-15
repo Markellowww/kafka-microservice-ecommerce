@@ -2,45 +2,33 @@
 
 # TODO:
 
-## Распределение технологий по микросервисам (посл-ое выполнение)
+1. Ingestion Service
+- Kafka: consumer слушает orders.incoming
+- MongoDB: сохраняет сырые заказы
+- REST: вызывает Order Processing Service
+- - - Реализует Dead Letter Queue (Topic "orders.incoming.failed) в случае неудачной обработки
+- - - Эндопоинты: получения "сырого" заказа из MongoDB (Redis)
 
-1. Order Ingestion Service
-- Kafka: Consumer (слушает orders.incoming)
-- MongoDB: Сохраняет сырые заказы
-- REST: Вызывает Order Processing Service
-
-2. Order Processing Service
+2. Processing Service
 - REST: Принимает запросы от Ingestion Service
-- Redis: Кеширует срочные заказы (TTL = 5 мин)
-- REST: Вызывает Order Fulfillment Service
-
-3. Order Fulfillment Service
-- REST: Принимает запросы от Processing Service
-- PostgreSQL: Сохраняет готовые заказы
-- Kafka: Producer (публикует в orders.processed)
+- PostgreSQL: Сохраняет заказы
+- Kafka: producer публикует обработанные заказы в orders.processed
+- - - Реализует TransactionalOutbox для обработка REST запроса
+- - - Эндпоинты: получение обработанного заказа из PostgreSQL (Redis)
 
 ## Компоненты
 
 1. Kafka Topics:
-- orders.incoming <- UI/внешние системы
-- orders.processed -> UI/email-service/analytics
+- orders.incoming используется для входящих "сырых" заказов
+- orders.incoming.failed используется в качестве очереди в DLQ
+- orders.processed используется для выходных данных обработанных заказов
 
 2. Базы данных:
-- MongoDB: Все входящие заказы (сырые данные)
-- Redis: Кеш срочных заказов + кеш цен/акций
-- PostgreSQL: Обработанные заказы (готовые к отгрузке)
+- MongoDB: Хранит все входящие заказы ("сырые" данные)
+- PostgreSQL: Хранит все обработанные заказы и outbox
+- Redis: Кеширует запросы на получение "сырых" и обработанных заказов
 
-
-private String orderId;
-private String customerId;
-private OrderStatus status;
-private ShippingType shippingType;
-private List<OrderItem> items;
-private BigDecimal totalAmount;
-private Address deliveryAddress;
-private Instant timestamp;
-private Instant processedAt;
-// Следующие поля добавить и заполнить!
-private String trackingNumber;
-private String assignedWarehouse;
-private Instant estimatedDelivery;
+3. Добавить в выходной Order:
+- private String trackingNumber;
+- private String assignedWarehouse;
+- private Instant estimatedDelivery;
