@@ -8,9 +8,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -48,16 +51,22 @@ public class OrderService {
         }
     }
 
-    public void sendOrderToProcessing(Order order) {
-        logger.debug("Order {} is sending on /api/process-order", order.getOrderId());
+    public CompletableFuture<ResponseEntity<String>> sendOrderToProcessing(Order order) {
+        logger.debug("Order {} is sending to /api/process-order", order.getOrderId());
 
-        String orderJson = objectMapper.writeValueAsString(order);
-        ResponseEntity<String> response = processingService.processOrder(orderJson);
-
-        if (response.getStatusCode().is2xxSuccessful()) {
-            logger.debug("Order {} successfully sent for processing", order.getOrderId());
-        } else {
-            throw new RuntimeException("Processing service returned non-2xx status: " + response.getStatusCode());
+        try {
+            String orderJson = objectMapper.writeValueAsString(order);
+            return processingService.processOrderAsync(orderJson)
+                    .exceptionally(throwable -> {
+                        logger.error("Async processing failed for order: {}", order.getOrderId(), throwable);
+                        throw throwable instanceof RuntimeException ?
+                                (RuntimeException) throwable :
+                                new RuntimeException("Async processing failed", throwable);
+                    });
+        } catch (JacksonException e) {
+            logger.error("Failed to serialize order: {}", order.getOrderId(), e);
+            return CompletableFuture.failedFuture(
+                    new RuntimeException("Failed to serialize order", e));
         }
     }
 

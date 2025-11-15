@@ -1,6 +1,6 @@
 services:
-#  TODO: ДОБАВИТЬ НАЗВАНИЯ ДЛЯ ПОЛУЧАЕМЫХ ИМЕЙДЖЕЙ
   kafka:
+    container_name: kafka-broker
     image: bitnamilegacy/kafka:4.0.0-debian-12-r10
     environment:
       KAFKA_CFG_NODE_ID: 0
@@ -16,6 +16,7 @@ services:
       - kafka_data:/bitnami/kafka/data
 
   kafka-ui:
+    container_name: kafka-ui
     image: provectuslabs/kafka-ui:latest
     environment:
       KAFKA_CLUSTERS_0_NAME: local
@@ -24,6 +25,7 @@ services:
       - "8080:8080"
 
   kafgen:
+    container_name: kafka-generator
     build:
       context: .
       dockerfile: kafgen/Dockerfile
@@ -35,6 +37,7 @@ services:
       - "8084:8080"
 
   ingestion:
+    container_name: ingestion-service
     build:
       context: .
       dockerfile: ingestion/Dockerfile
@@ -51,6 +54,7 @@ services:
       - "8081:8081"
 
   mongo:
+    container_name: mongo-database
     image: mongodb/mongodb-community-server:7.0-ubi8
     environment:
       MONGO_INITDB_ROOT_USERNAME: mongo
@@ -63,37 +67,12 @@ services:
       - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
 
   processing:
+    container_name: processing-service
     build:
       context: .
       dockerfile: processing/Dockerfile
-#    depends_on:
-#      - redis
-    environment:
-      # Redis
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-
-      # URLs до других сервисов
-      SERVICE_C_URL: http://service-c:8080
     ports:
       - "8082:8082"
-
-  fulfillment:
-    build:
-      context: .
-      dockerfile: fulfillment/Dockerfile
-    depends_on:
-#      - postgres
-      - kafka
-    environment:
-    # PostgreSQL
-      DATASOURCE_URL: jdbc:postgresql://postgres:5432/service_c_db
-      DATASOURCE_USERNAME: user
-      DATASOURCE_PASSWORD: password
-      # Kafka
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-    ports:
-      - "8083:8083"
 
 volumes:
   kafka_data:

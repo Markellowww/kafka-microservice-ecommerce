@@ -24,14 +24,25 @@ public class KafkaConsumer {
 
     @KafkaListener(topics = "orders.incoming")
     public void consumeOrder(ConsumerRecord<String, String> orderJson, Acknowledgment ack) {
-        logger.debug("Received message from Kafka topic: orders.incoming");
+        try {
+            logger.debug("Received message from Kafka topic: orders.incoming");
+            Order order = orderService.deserializeOrder(orderJson);
+            orderService.determineShippingType(order);
+            orderService.saveToMongo(order);
 
-        Order order = orderService.deserializeOrder(orderJson);
-        orderService.determineShippingType(order);
-        orderService.saveToMongo(order);
-        orderService.sendOrderToProcessing(order);
+            orderService.sendOrderToProcessing(order)
+                    .whenComplete((result, throwable) -> {
+                        if (throwable != null) {
+                            logger.error("Failed to send order to processing: {}", order.getOrderId(), throwable);
+                            // TODO:отправка в DLQ
+                        } else {
+                            logger.debug("Order {} successfully processed", order.getOrderId());
+                        }
+                        ack.acknowledge();
+                    });
 
-        ack.acknowledge();
-        logger.debug("Message acknowledged successfully for order {}", order.getOrderId());
+        } catch (Exception e) {
+            logger.error("Failed to process Kafka message: {}", orderJson.key(), e);
+        }
     }
 }

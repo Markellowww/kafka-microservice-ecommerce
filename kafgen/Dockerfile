@@ -4,7 +4,6 @@ WORKDIR /app
 COPY pom.xml .
 COPY ingestion/pom.xml ./ingestion/
 COPY processing/pom.xml ./processing/
-COPY fulfillment/pom.xml ./fulfillment/
 COPY kafgen/pom.xml ./kafgen/
 
 RUN mvn -f pom.xml clean package -DskipTests
