@@ -22,9 +22,3 @@ springdoc:
   model-converters:
     hateoas-converter:
       enabled: false
-logging:
-  level:
-    com:
-      markellowww:
-        kafgen:
-          DEBUG

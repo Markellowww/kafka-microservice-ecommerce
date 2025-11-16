@@ -1,4 +1,4 @@
-# kafka-microservice-ecommerce
+**# kafka-microservice-ecommerce
 
 # TODO:
 
@@ -31,4 +31,4 @@
 3. Добавить в выходной Order:
 - private String trackingNumber;
 - private String assignedWarehouse;
-- private Instant estimatedDelivery;
+- private Instant estimatedDelivery;**

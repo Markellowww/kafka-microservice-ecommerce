@@ -16,10 +16,10 @@
     <slf4j.version>2.0.17</slf4j.version>
     <lombok.version>1.18.42</lombok.version>
     <spring.kafka.version>4.0.0-RC1</spring.kafka.version>
-<!--    TODO: поменять openapi на последнюю и проверить работоспособность   -->
     <openapi.version>3.0.0-RC1</openapi.version>
     <facker.version>1.0.2</facker.version>
     <junit.bom.version>5.11.0</junit.bom.version>
+    <postgre.version>42.7.8</postgre.version>
   </properties>
 
   <parent>

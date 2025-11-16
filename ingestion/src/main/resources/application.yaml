@@ -16,12 +16,6 @@ spring:
       heartbeat-interval: 15000
       max-poll-interval: 300000
       session-timeout-ms: 45000
-logging:
-  level:
-    com:
-      markellowww:
-        ingestion:
-          DEBUG
 processing:
   service:
     url: ${PROCESSING_URL}
