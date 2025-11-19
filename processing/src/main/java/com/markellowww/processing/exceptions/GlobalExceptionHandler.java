@@ -1,6 +1,6 @@
 package com.markellowww.processing.exceptions;
 
-import com.markellowww.processing.enums.ErrorResponseDto;
+import com.markellowww.processing.dto.ErrorResponseDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;

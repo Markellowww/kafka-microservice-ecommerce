@@ -1,4 +1,4 @@
-package com.markellowww.processing.enums;
+package com.markellowww.processing.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

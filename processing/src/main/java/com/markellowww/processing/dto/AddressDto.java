@@ -1,5 +1,6 @@
-package com.markellowww.processing.models;
+package com.markellowww.processing.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,7 +14,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Address {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class AddressDto {
     private String city;
     private String street;
     private String zipCode;

@@ -1,10 +1,10 @@
 package com.markellowww.processing.controllers;
 
-import com.markellowww.processing.models.Order;
+import com.markellowww.processing.dto.OrderDto;
+import com.markellowww.processing.services.OrderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.json.JsonParseException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,31 +20,31 @@ import tools.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping("/api")
-public class OrderProcessingController {
-    private static final Logger logger = LoggerFactory.getLogger(OrderProcessingController.class);
+public class ProcessingController {
+    private static final Logger logger = LoggerFactory.getLogger(ProcessingController.class);
 
     private final ObjectMapper objectMapper;
 
-    public OrderProcessingController(@Qualifier("objectMapper") ObjectMapper objectMapper) {
+    private final OrderService orderService;
+
+    public ProcessingController(@Qualifier("objectMapper") ObjectMapper objectMapper,
+                                OrderService orderService) {
         this.objectMapper = objectMapper;
+        this.orderService = orderService;
     }
 
     @PostMapping("/process-order")
     public ResponseEntity<String> processOrder(@RequestBody String orderJson) {
         try {
-            Order order = objectMapper.readValue(orderJson, Order.class);
-            logger.debug("Received order for processing: {}", order.getOrderId());
+            OrderDto orderDto = objectMapper.readValue(orderJson, OrderDto.class);
+            logger.debug("Received order for processing: {}", orderDto.getOrderId());
 
-            System.out.println("ПОЛУЧЕННЫЙ ЗАКАЗ: " + order);
-            // 1. Если заказ срочный, то кеширует в Redis
+            System.out.println("ПОЛУЧЕННЫЙ ЗАКАЗ: " + orderDto);
 
-            // 2. Проверяет наличие товара, валидирует данные
-
-            // 3. Вызывает fulfillment сервис
+            orderService.createOrder(orderDto);
 
 
-            // обработка
-            return ResponseEntity.ok(objectMapper.writeValueAsString(order));
+            return ResponseEntity.ok(objectMapper.writeValueAsString(orderDto));
         } catch (JacksonException e) {
             logger.error("Invalid JSON format for order: {}", orderJson, e);
             return ResponseEntity.badRequest().body("Invalid JSON format");
