@@ -39,10 +39,7 @@ public class ProcessingController {
             OrderDto orderDto = objectMapper.readValue(orderJson, OrderDto.class);
             logger.debug("Received order for processing: {}", orderDto.getOrderId());
 
-            System.out.println("ПОЛУЧЕННЫЙ ЗАКАЗ: " + orderDto);
-
             orderService.createOrder(orderDto);
-
 
             return ResponseEntity.ok(objectMapper.writeValueAsString(orderDto));
         } catch (JacksonException e) {

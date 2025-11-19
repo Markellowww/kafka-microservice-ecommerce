@@ -4,6 +4,7 @@ import com.markellowww.ingestion.models.Order;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
@@ -24,25 +25,20 @@ public class KafkaConsumer {
 
     @KafkaListener(topics = "orders.incoming")
     public void consumeOrder(ConsumerRecord<String, String> orderJson, Acknowledgment ack) {
+        logger.debug("Received message from Kafka topic: orders.incoming");
+
         try {
-            logger.debug("Received message from Kafka topic: orders.incoming");
             Order order = orderService.deserializeOrder(orderJson);
             orderService.determineShippingType(order);
             orderService.saveToMongo(order);
 
-            orderService.sendOrderToProcessing(order)
-                    .whenComplete((result, throwable) -> {
-                        if (throwable != null) {
-                            logger.error("Failed to send order to processing: {}", order.getOrderId(), throwable);
-                            // TODO:отправка в DLQ
-                        } else {
-                            logger.debug("Order {} successfully processed", order.getOrderId());
-                        }
-                        ack.acknowledge();
-                    });
+            ResponseEntity<String> response = orderService.sendOrderToProcessing(order);
 
+            logger.debug("Order {} successfully processed: {}", order.getOrderId(), response);
+
+            ack.acknowledge();
         } catch (Exception e) {
-            logger.error("Failed to process Kafka message: {}", orderJson.key(), e);
+            logger.error("Failed to process order: {}", orderJson.key(), e);
         }
     }
 }

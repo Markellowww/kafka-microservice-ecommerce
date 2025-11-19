@@ -12,8 +12,6 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -51,22 +49,20 @@ public class OrderService {
         }
     }
 
-    public CompletableFuture<ResponseEntity<String>> sendOrderToProcessing(Order order) {
+    public ResponseEntity<String> sendOrderToProcessing(Order order) {
         logger.debug("Order {} is sending to /api/process-order", order.getOrderId());
 
         try {
             String orderJson = objectMapper.writeValueAsString(order);
-            return processingService.processOrderAsync(orderJson)
-                    .exceptionally(throwable -> {
-                        logger.error("Async processing failed for order: {}", order.getOrderId(), throwable);
-                        throw throwable instanceof RuntimeException ?
-                                (RuntimeException) throwable :
-                                new RuntimeException("Async processing failed", throwable);
-                    });
+
+            ResponseEntity<String> response = processingService.processOrder(orderJson);
+
+            logger.debug("Order {} processed successfully", order.getOrderId());
+            return response;
         } catch (JacksonException e) {
-            logger.error("Failed to serialize order: {}", order.getOrderId(), e);
-            return CompletableFuture.failedFuture(
-                    new RuntimeException("Failed to serialize order", e));
+            throw new RuntimeException("Failed to serialize order", e);
+        } catch (Exception e) {
+            throw new RuntimeException("Processing failed", e);
         }
     }
 
