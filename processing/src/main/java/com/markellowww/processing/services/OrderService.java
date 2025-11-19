@@ -2,6 +2,8 @@ package com.markellowww.processing.services;
 
 import com.markellowww.processing.OrderMapper;
 import com.markellowww.processing.dto.OrderDto;
+import com.markellowww.processing.exceptions.OrderCreationException;
+import com.markellowww.processing.exceptions.OrderFindingException;
 import com.markellowww.processing.models.Order;
 import com.markellowww.processing.repositories.OrderRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -24,7 +26,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
 
-    public OrderDto createOrder(OrderDto orderDto) {
+    public void createOrder(OrderDto orderDto) {
         logger.info("Starting order creation process for customer: {}", orderDto.getCustomerId());
         logger.debug("Order DTO received: {}", orderDto);
 
@@ -48,14 +50,10 @@ public class OrderService {
             logger.info("Order saved successfully with generated ID: {}", savedOrder.getOrderId());
             logger.debug("Saved order details: {}", savedOrder);
 
-            OrderDto result = orderMapper.toDto(savedOrder);
-            logger.info("Order creation completed successfully for order ID: {}", savedOrder.getOrderId());
-
-            return result;
         } catch (Exception e) {
-            throw new RuntimeException(
-                    String.format("Error occurred while creating order for customer %s: ", orderDto.getCustomerId()), e
-            );
+            throw new OrderCreationException(
+                    String.format("Error occurred while creating order for customer %s: ",
+                            orderDto.getCustomerId()), e);
         }
     }
 
@@ -77,7 +75,7 @@ public class OrderService {
                     });
 
         } catch (Exception e) {
-            throw new RuntimeException(String.format("Error occurred while fetching order %s: ", orderId), e);
+            throw new OrderFindingException(String.format("Error occurred while fetching order %s: ", orderId), e);
         }
     }
 }

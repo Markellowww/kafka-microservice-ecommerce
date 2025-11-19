@@ -1,6 +1,9 @@
 package com.markellowww.ingestion.service;
 
 import com.markellowww.ingestion.enums.ShippingType;
+import com.markellowww.ingestion.exceptions.OrderDeserializationException;
+import com.markellowww.ingestion.exceptions.OrderMongoDbSavingException;
+import com.markellowww.ingestion.exceptions.OrderSerializationException;
 import com.markellowww.ingestion.models.Order;
 import com.markellowww.ingestion.repositories.OrderRepository;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -8,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
@@ -36,45 +38,49 @@ public class OrderService {
 
     public void saveToMongo(Order order) {
         logger.debug("Order {} deserialized from JSON", order.getOrderId());
+
         if (orderRepository.existsById(order.getOrderId())) {
             logger.warn("Order {} already saved, skipping", order.getOrderId());
             return;
         }
+
         try {
             logger.debug("Sending order {} to MongoDB", order.getOrderId());
             orderRepository.save(order);
             logger.debug("Order {} was successfully sent to MongoDB", order.getOrderId());
         } catch (Exception e) {
-            throw new RuntimeException("Failed to save order to MongoDB: " + e.getMessage(), e);
+            throw new OrderMongoDbSavingException("Failed to save order to MongoDB: " + e.getMessage(), e);
         }
     }
 
     public ResponseEntity<String> sendOrderToProcessing(Order order) {
         logger.debug("Order {} is sending to /api/process-order", order.getOrderId());
+        String orderJson = serializeOrder(order);
+        ResponseEntity<String> response = processingService.processOrder(orderJson);
+        logger.debug("Order {} processed successfully", order.getOrderId());
+        return response;
+    }
 
+    public String serializeOrder(Order order) {
         try {
+            logger.debug("Starting to serialize the received JSON order");
             String orderJson = objectMapper.writeValueAsString(order);
-
-            ResponseEntity<String> response = processingService.processOrder(orderJson);
-
-            logger.debug("Order {} processed successfully", order.getOrderId());
-            return response;
-        } catch (JacksonException e) {
-            throw new RuntimeException("Failed to serialize order", e);
+            logger.debug("Order {} was successfully serialized", order.getOrderId());
+            return orderJson;
         } catch (Exception e) {
-            throw new RuntimeException("Processing failed", e);
+            throw new OrderSerializationException("Order deserialization failed", e);
         }
     }
 
     public Order deserializeOrder(ConsumerRecord<String, String> orderJson) {
         try {
-            logger.debug("Processing the received JSON order");
+            logger.debug("Starting to deserialize the received JSON order");
             Order order = objectMapper.readValue(orderJson.value(), Order.class);
             validateOrder(order);
             logger.debug("Order {} was successfully deserialized", order.getOrderId());
             return order;
         } catch (Exception e) {
-            throw new RuntimeException("Order deserialization failed", e);
+            throw new OrderDeserializationException("Order deserialization failed", e);
         }
     }
 

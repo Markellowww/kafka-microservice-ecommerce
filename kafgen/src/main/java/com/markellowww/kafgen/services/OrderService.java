@@ -1,16 +1,18 @@
 package com.markellowww.kafgen.services;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.markellowww.kafgen.exceptions.OrderSerializationException;
 import com.markellowww.kafgen.models.Order;
-import org.apache.commons.lang3.SerializationException;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.errors.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.kafka.KafkaException;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
+
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Markelloww
@@ -32,25 +34,42 @@ public class OrderService {
     public void saveOrder(Order order) {
         logger.debug("Processing order with ID: {}", order.getOrderId());
 
-        String orderJson = objectMapper.writeValueAsString(order);
-        logger.debug("Order serialized to JSON, sending to Kafka topic: orders.incoming");
+        try {
+            String orderJson = serializeOrder(order);
 
-        ProducerRecord<String, String> producerRecord = new ProducerRecord<>(
-                "orders.incoming",
-                null,
-                "order",
-                orderJson
-        );
+            logger.debug("Order serialized to JSON, sending to Kafka topic: orders.incoming");
 
-        var future = kafkaTemplate.send(producerRecord);
+            ProducerRecord<String, String> producerRecord = new ProducerRecord<>(
+                    "orders.incoming",
+                    null,
+                    "order",
+                    orderJson
+            );
 
-        future.whenComplete((result, ex) -> {
-            if (ex != null) {
-                logger.error("Failed to send order to Kafka: {}", order.getOrderId(), ex);
-                throw new KafkaException("Failed to send order to Kafka: " + order.getOrderId(), ex);
-            } else {
-                logger.debug("Order sent to Kafka successfully: {}", order.getOrderId());
-            }
-        });
+            kafkaTemplate.send(producerRecord).get(10, TimeUnit.SECONDS);
+
+            logger.debug("Order sent to Kafka successfully: {}", order.getOrderId());
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new KafkaException("Thread was interrupted while sending order to Kafka: " + order.getOrderId(), e);
+        } catch (TimeoutException e) {
+            throw new KafkaException("Timeout while sending order to Kafka: " + order.getOrderId(), e);
+        } catch (ExecutionException e) {
+            throw new KafkaException("Failed to send order to Kafka: " + order.getOrderId(), e.getCause());
+        } catch (Exception e) {
+            throw new KafkaException("Failed to send order to Kafka: " + order.getOrderId(), e);
+        }
+    }
+
+    public String serializeOrder(Order order) {
+        try {
+            logger.debug("Starting to serialize the received JSON order");
+            String orderJson = objectMapper.writeValueAsString(order);
+            logger.debug("Order {} was successfully serialized", order.getOrderId());
+            return orderJson;
+        } catch (Exception e) {
+            throw new OrderSerializationException("Order deserialization failed", e);
+        }
     }
 }

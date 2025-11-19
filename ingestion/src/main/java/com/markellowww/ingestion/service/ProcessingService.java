@@ -1,5 +1,6 @@
 package com.markellowww.ingestion.service;
 
+import com.markellowww.ingestion.exceptions.OrderProcessingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -23,7 +24,11 @@ public class ProcessingService {
     }
 
     public ResponseEntity<String> processOrder(String orderJson) {
+        logger.info("Starting order processing request");
+
         try {
+            logger.debug("Sending order data: {}", orderJson);
+
             return webClient.post()
                     .uri("/api/process-order")
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -32,7 +37,7 @@ public class ProcessingService {
                     .toEntity(String.class)
                     .block();
         } catch (Exception e) {
-            throw new RuntimeException("HTTP request failed", e);
+            throw new OrderProcessingException("HTTP request failed", e);
         }
     }
 }

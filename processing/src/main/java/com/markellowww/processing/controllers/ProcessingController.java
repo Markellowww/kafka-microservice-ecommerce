@@ -6,11 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import tools.jackson.core.JacksonException;
+import org.springframework.web.bind.annotation.*;
 import tools.jackson.databind.ObjectMapper;
 
 /**
@@ -35,19 +31,16 @@ public class ProcessingController {
 
     @PostMapping("/process-order")
     public ResponseEntity<String> processOrder(@RequestBody String orderJson) {
-        try {
-            OrderDto orderDto = objectMapper.readValue(orderJson, OrderDto.class);
-            logger.debug("Received order for processing: {}", orderDto.getOrderId());
+        OrderDto orderDto = objectMapper.readValue(orderJson, OrderDto.class);
+        logger.debug("Received order for processing: {}", orderDto.getOrderId());
+        orderService.createOrder(orderDto);
+        return ResponseEntity.ok(objectMapper.writeValueAsString(orderDto));
+    }
 
-            orderService.createOrder(orderDto);
-
-            return ResponseEntity.ok(objectMapper.writeValueAsString(orderDto));
-        } catch (JacksonException e) {
-            logger.error("Invalid JSON format for order: {}", orderJson, e);
-            return ResponseEntity.badRequest().body("Invalid JSON format");
-        } catch (Exception e) {
-            logger.error("Error processing order", e);
-            return ResponseEntity.internalServerError().body("Processing failed");
-        }
+    @GetMapping("/orders/{orderId}")
+    public ResponseEntity<String> getOrder(@PathVariable Long orderId) {
+        logger.debug("Fetching order with ID: {}", orderId);
+        OrderDto orderDto = orderService.getOrder(orderId);
+        return ResponseEntity.ok(objectMapper.writeValueAsString(orderDto));
     }
 }
