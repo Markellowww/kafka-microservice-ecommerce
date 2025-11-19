@@ -2,6 +2,17 @@
 
 # TODO:
 
+Реализовать:
+- Логирование
+- Тестирование
+- API Gateway
+- Spring Eureka
+- Circuit Breaker в API Gateway
+- Spring Cloud Config
+- HashiCorp Vault
+
+# Что представляет из себя проект?
+
 1. Ingestion Service
 - Kafka: consumer слушает orders.incoming
 - MongoDB: сохраняет сырые заказы
