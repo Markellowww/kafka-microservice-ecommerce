@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 
 @RestController
-@RequestMapping("/api")
 public class ProcessingController {
     private static final Logger logger = LoggerFactory.getLogger(ProcessingController.class);
 
@@ -28,7 +27,7 @@ public class ProcessingController {
         this.orderService = orderService;
     }
 
-    @PostMapping("/process-order")
+    @PostMapping("/process/orders")
     public ResponseEntity<String> processOrder(@RequestBody String orderJson) throws JsonProcessingException {
         OrderDto orderDto = objectMapper.readValue(orderJson, OrderDto.class);
         logger.debug("Received order for processing: {}", orderDto.getOrderId());
@@ -36,7 +35,7 @@ public class ProcessingController {
         return ResponseEntity.ok(objectMapper.writeValueAsString(orderDto));
     }
 
-    @GetMapping("/orders/{orderId}")
+    @GetMapping("process/orders/{orderId}")
     public ResponseEntity<String> getOrder(@PathVariable Long orderId) throws JsonProcessingException {
         logger.debug("Fetching order with ID: {}", orderId);
         OrderDto orderDto = orderService.getOrder(orderId);

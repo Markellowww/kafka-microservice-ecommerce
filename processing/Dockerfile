@@ -5,6 +5,8 @@ COPY pom.xml .
 COPY ingestion/pom.xml ./ingestion/
 COPY processing/pom.xml ./processing/
 COPY kafgen/pom.xml ./kafgen/
+COPY eureka/pom.xml ./eureka/
+COPY gateway/pom.xml ./gateway/
 
 RUN mvn -f pom.xml clean package -DskipTests
 

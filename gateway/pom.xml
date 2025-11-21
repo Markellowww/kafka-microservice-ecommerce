@@ -7,10 +7,10 @@
     <version>1.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>processing</artifactId>
+  <artifactId>gateway</artifactId>
   <version>1.0-SNAPSHOT</version>
 
-  <name>processing</name>
+  <name>gateway</name>
 
   <dependencyManagement>
     <dependencies>
@@ -31,6 +31,11 @@
       <version>${eureka.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-starter-gateway-server-webflux</artifactId>
+      <version>${gateway.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
       <scope>test</scope>
@@ -39,16 +44,6 @@
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-params</artifactId>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-data-jpa</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
-      <version>${postgre.version}</version>
-      <scope>runtime</scope>
     </dependency>
   </dependencies>
 
@@ -98,7 +93,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <configuration>
-          <mainClass>com.markellowww.processing.ProcessingApplication</mainClass>
+          <mainClass>com.markellowww.gateway.ApiGatewayApplication</mainClass>
         </configuration>
         <executions>
           <execution>

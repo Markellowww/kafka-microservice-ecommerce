@@ -10,10 +10,10 @@ COPY gateway/pom.xml ./gateway/
 
 RUN mvn -f pom.xml clean package -DskipTests
 
-COPY ./kafgen/src ./kafgen/src
+COPY ./eureka/src ./eureka/src
 
-RUN mvn -f kafgen/pom.xml clean package -DskipTests
+RUN mvn -f eureka/pom.xml clean package -DskipTests
 
 FROM amazoncorretto:21-al2023
-COPY --from=build /app/kafgen/target/kafgen-1.0-SNAPSHOT.jar app.jar
+COPY --from=build /app/eureka/target/eureka-1.0-SNAPSHOT.jar app.jar
 ENTRYPOINT ["java", "-jar", "/app.jar"]

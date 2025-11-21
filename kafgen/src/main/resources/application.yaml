@@ -1,3 +1,5 @@
+server:
+  port: 0
 spring:
   application:
     name: kafgen
@@ -22,3 +24,12 @@ springdoc:
   model-converters:
     hateoas-converter:
       enabled: false
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8081/eureka/

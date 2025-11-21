@@ -1,0 +1,33 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: api-gateway
+  main:
+    webApplicationType: reactive
+  cloud:
+    gateway:
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: true
+              lower-case-service-id: true
+          routes:
+            - id: kafgen
+              uri: lb://kafgen
+              predicates:
+                - Path=/orders/**
+            - id: processing
+              uri: lb://processing
+              predicates:
+                - Path=/process/**
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8081/eureka/

@@ -57,7 +57,7 @@ public class OrderController {
             )
     })
     @PostMapping(
-            value = "/order",
+            value = "/orders",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<Order> createOrder() {
@@ -93,7 +93,7 @@ public class OrderController {
             )
     })
     @PostMapping(
-            value = "/order/batch",
+            value = "/orders/batch",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<List<Order>> createOrders(@RequestParam(defaultValue = "1") int count) {

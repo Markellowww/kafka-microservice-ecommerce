@@ -1,15 +1,11 @@
 package com.markellowww.ingestion.config;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.apache.http.HttpHeaders;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.netty.http.client.HttpClient;
-
-import java.time.Duration;
 
 /**
  * @author Markelloww
@@ -18,17 +14,16 @@ import java.time.Duration;
 @Configuration
 public class WebClientConfig {
 
-    @Value("${processing.service.url}")
-    private String processingBaseUrl;
+    @Bean
+    @LoadBalanced
+    public WebClient.Builder loadBalancedWebClientBuilder() {
+        return WebClient.builder();
+    }
 
     @Bean
-    public WebClient webClient() {
-        return WebClient.builder()
-                .baseUrl(processingBaseUrl)
-                .clientConnector(new ReactorClientHttpConnector(
-                        HttpClient.create()
-                                .responseTimeout(Duration.ofSeconds(30))
-                ))
+    public WebClient processingWebClient(WebClient.Builder loadBalancedWebClientBuilder) {
+        return loadBalancedWebClientBuilder
+                .baseUrl("http://processing")
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }

@@ -1,0 +1,163 @@
+services:
+  api-gateway:
+    container_name: api-gateway
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+    environment:
+      KAFKA_BOOTSTRAPSERVERS: kafka:9092
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://eureka-server:8081/eureka
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+
+  eureka-server:
+    container_name: eureka-server
+    build:
+      context: .
+      dockerfile: eureka/Dockerfile
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8081/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    ports:
+      - "8081:8081"
+
+  kafgen:
+    container_name: kafka-generator
+    build:
+      context: .
+      dockerfile: kafgen/Dockerfile
+    environment:
+      KAFKA_BOOTSTRAPSERVERS: kafka:9092
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://eureka-server:8081/eureka
+    depends_on:
+      api-gateway:
+        condition: service_started
+      eureka-server:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  ingestion:
+    container_name: ingestion-service
+    build:
+      context: .
+      dockerfile: ingestion/Dockerfile
+    environment:
+      KAFKA_BOOTSTRAPSERVERS: kafka:9092
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://eureka-server:8081/eureka
+      MONGO_USER: mongo
+      MONGO_PASSWORD: mongo
+    depends_on:
+      api-gateway:
+        condition: service_started
+      eureka-server:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+
+  processing:
+    container_name: processing-service
+    build:
+      context: .
+      dockerfile: processing/Dockerfile
+    environment:
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://eureka-server:8081/eureka
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/processed_orders
+      POSTGRES_USERNAME: postgres
+      POSTGRES_PASSWORD: postgres
+    depends_on:
+      api-gateway:
+        condition: service_started
+      eureka-server:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+  mongo:
+    container_name: mongo-database
+    image: mongodb/mongodb-community-server:7.0-ubi8
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongo
+      MONGO_INITDB_ROOT_PASSWORD: mongo
+      MONGO_INITDB_DATABASE: raw_orders
+    healthcheck:
+      test: |
+        mongosh --eval "
+        db.adminCommand('ismaster') || 
+        db.runCommand({ping: 1})"
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+
+  postgres:
+    container_name: postgres-database
+    image: postgres:15.15-trixie
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: processed_orders
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d processed_orders" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  kafka:
+    container_name: kafka-broker
+    image: bitnamilegacy/kafka:4.0.0-debian-12-r10
+    environment:
+      KAFKA_CFG_NODE_ID: 0
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@kafka:9093
+      KAFKA_KRAFT_CLUSTER_ID: mk-1
+      KAFKA_CFG_LOG_DIRS: /bitnami/kafka/data
+    healthcheck:
+      test: [ "CMD", "kafka-topics.sh", "--bootstrap-server", "localhost:9092", "--list" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    volumes:
+      - kafka_data:/bitnami/kafka/data
+
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:latest
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    depends_on:
+      kafka:
+        condition: service_healthy
+    ports:
+      - "9090:8080"
+
+volumes:
+  kafka_data:
+  mongodb_data:
+  postgres_data:
