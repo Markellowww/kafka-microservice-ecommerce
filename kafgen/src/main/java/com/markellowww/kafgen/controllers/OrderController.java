@@ -1,6 +1,6 @@
 package com.markellowww.kafgen.controllers;
 
-import com.markellowww.kafgen.OrderGenerator;
+import com.markellowww.kafgen.components.OrderGenerator;
 import com.markellowww.kafgen.models.Order;
 import com.markellowww.kafgen.services.OrderService;
 import io.swagger.v3.oas.annotations.Operation;

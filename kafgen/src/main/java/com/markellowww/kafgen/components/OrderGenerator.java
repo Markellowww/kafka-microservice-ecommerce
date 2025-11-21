@@ -1,4 +1,4 @@
-package com.markellowww.kafgen;
+package com.markellowww.kafgen.components;
 
 import com.github.javafaker.Faker;
 import com.markellowww.kafgen.enums.OrderStatus;

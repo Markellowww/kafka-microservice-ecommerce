@@ -1,6 +1,6 @@
 package com.markellowww.processing.services;
 
-import com.markellowww.processing.OrderMapper;
+import com.markellowww.processing.models.mappers.OrderMapper;
 import com.markellowww.processing.dto.OrderDto;
 import com.markellowww.processing.exceptions.OrderCreationException;
 import com.markellowww.processing.exceptions.OrderFindingException;

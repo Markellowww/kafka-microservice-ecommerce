@@ -1,5 +1,6 @@
 package com.markellowww.ingestion.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markellowww.ingestion.enums.ShippingType;
 import com.markellowww.ingestion.exceptions.OrderDeserializationException;
 import com.markellowww.ingestion.exceptions.OrderMongoDbSavingException;
@@ -11,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
 import java.util.concurrent.ThreadLocalRandom;
@@ -25,15 +25,15 @@ public class OrderService {
     private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
 
     private final OrderRepository orderRepository;
-    private final ObjectMapper objectMapper;
     private final ProcessingService processingService;
+    private final ObjectMapper objectMapper;
 
     public OrderService(OrderRepository orderRepository,
-                        ObjectMapper objectMapper,
-                        ProcessingService processingService) {
+                        ProcessingService processingService,
+                        ObjectMapper objectMapper) {
         this.orderRepository = orderRepository;
-        this.objectMapper = objectMapper;
         this.processingService = processingService;
+        this.objectMapper = objectMapper;
     }
 
     public void saveToMongo(Order order) {

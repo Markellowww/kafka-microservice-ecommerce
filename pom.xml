@@ -15,8 +15,8 @@
     <logback.version>1.5.21</logback.version>
     <slf4j.version>2.0.17</slf4j.version>
     <lombok.version>1.18.42</lombok.version>
-    <spring.kafka.version>4.0.0-RC1</spring.kafka.version>
-    <openapi.version>3.0.0-RC1</openapi.version>
+    <spring.kafka.version>3.3.11</spring.kafka.version>
+    <openapi.version>2.8.14</openapi.version>
     <facker.version>1.0.2</facker.version>
     <junit.bom.version>5.11.0</junit.bom.version>
     <postgre.version>42.7.8</postgre.version>
@@ -25,7 +25,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>4.0.0-RC2</version>
+    <version>3.5.7</version>
     <relativePath/>
   </parent>
 

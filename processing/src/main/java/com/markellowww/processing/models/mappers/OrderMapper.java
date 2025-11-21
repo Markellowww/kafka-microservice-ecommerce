@@ -1,11 +1,10 @@
-package com.markellowww.processing;
+package com.markellowww.processing.models.mappers;
 
 import com.markellowww.processing.dto.AddressDto;
 import com.markellowww.processing.dto.OrderDto;
 import com.markellowww.processing.dto.OrderItemDto;
 import com.markellowww.processing.models.Order;
 import com.markellowww.processing.models.OrderItem;
-import com.markellowww.processing.services.OrderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
