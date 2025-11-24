@@ -3,6 +3,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 amplicode.xml
+.env
 
 ### IntelliJ IDEA ###
 .gigaide
