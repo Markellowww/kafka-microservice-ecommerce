@@ -39,39 +39,7 @@ public class OrderController {
     }
 
     @Operation(
-            summary = "Create one order",
-            description = "Generates and stores one random order in Kafka"
-    )
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Order successfully created",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = Order.class)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Internal server error"
-            )
-    })
-    @PostMapping(
-            value = "/orders",
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    public ResponseEntity<Order> createOrder() {
-        logger.info("Received request to create new order");
-
-        Order order = generator.generateOrder();
-        orderService.saveOrder(order);
-
-        logger.info("Order created and sent successfully with ID: {}", order.getOrderId());
-        return ResponseEntity.ok(order);
-    }
-
-    @Operation(
-            summary = "Create multiple orders",
+            summary = "Create amount of orders",
             description = "Generates and saves the specified number of orders"
     )
     @ApiResponses(value = {
@@ -93,7 +61,7 @@ public class OrderController {
             )
     })
     @PostMapping(
-            value = "/orders/batch",
+            value = "/orders",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<List<Order>> createOrders(@RequestParam(defaultValue = "1") int count) {

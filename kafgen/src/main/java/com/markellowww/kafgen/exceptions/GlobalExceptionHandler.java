@@ -1,6 +1,6 @@
 package com.markellowww.kafgen.exceptions;
 
-import com.fasterxml.jackson.core.JacksonException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.markellowww.kafgen.dto.ErrorResponseDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.Instant;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
 /**
  * @author Markelloww
@@ -20,63 +22,76 @@ import java.time.Instant;
 public class GlobalExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    @ExceptionHandler(JacksonException.class)
-    public ResponseEntity<ErrorResponseDto> handleSerializationException(JacksonException e) {
-        logger.warn("Order serialization error: {}", e.getMessage());
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponseDto> handleGenericException(Exception e) {
+        logger.warn("Exception error: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(internalServerError());
+    }
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-                ErrorResponseDto.builder()
-                        .timestamp(Instant.now())
-                        .status(HttpStatus.BAD_REQUEST.value())
-                        .error("Invalid Order Data")
-                        .message("Failed to process data - invalid format")
-                        .details("Please check the data and try again")
-                        .build()
-        );
+    @ExceptionHandler(JsonProcessingException.class)
+    public ResponseEntity<ErrorResponseDto> handleSerializationException(JsonProcessingException e) {
+        logger.warn("Order serialization error: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(badRequest());
+    }
+
+    @ExceptionHandler(InterruptedException.class)
+    public ResponseEntity<ErrorResponseDto> handleInterruptedException(InterruptedException e) {
+        logger.error("Interrupted exception: {}", e.getMessage());
+
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(serviceTemporarilyUnavailable());
+    }
+
+    @ExceptionHandler(TimeoutException.class)
+    public ResponseEntity<ErrorResponseDto> handleTimeoutException(TimeoutException e) {
+        logger.error("Timeout exception: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(serviceTemporarilyUnavailable());
+    }
+
+    @ExceptionHandler(ExecutionException.class)
+    public ResponseEntity<ErrorResponseDto> handleExecutionException(ExecutionException e) {
+        logger.error("Execution exception: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(serviceTemporarilyUnavailable());
     }
 
     @ExceptionHandler(KafkaException.class)
     public ResponseEntity<ErrorResponseDto> handleKafkaSendException(KafkaException e) {
         logger.error("Kafka send error: {}", e.getMessage());
-
-        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(
-                ErrorResponseDto.builder()
-                        .timestamp(Instant.now())
-                        .status(HttpStatus.SERVICE_UNAVAILABLE.value())
-                        .error("Service Temporarily Unavailable")
-                        .message("Unable to process data at this time")
-                        .details("Please try again later")
-                        .build()
-        );
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponseDto> handleGenericException(Exception e) {
-        logger.warn("Exception error: {}", e.getMessage());
-
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                ErrorResponseDto.builder()
-                        .timestamp(Instant.now())
-                        .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                        .error("Internal Server Error")
-                        .message("An unexpected error occurred")
-                        .details("Please contact support if the problem persists")
-                        .build()
-        );
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(serviceTemporarilyUnavailable());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponseDto> handleIllegalArgumentExceptionException(IllegalArgumentException e) {
         logger.warn("Illegal argument error: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(badRequest());
+    }
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-                ErrorResponseDto.builder()
+    private ErrorResponseDto internalServerError() {
+        return ErrorResponseDto.builder()
+                .timestamp(Instant.now())
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .error("Internal Server Error")
+                .message("An unexpected error occurred")
+                .details("Please contact support if the problem persists")
+                .build();
+    }
+
+    private ErrorResponseDto serviceTemporarilyUnavailable() {
+        return ErrorResponseDto.builder()
+                .timestamp(Instant.now())
+                .status(HttpStatus.SERVICE_UNAVAILABLE.value())
+                .error("Service Temporarily Unavailable")
+                .message("Unable to process data at this time")
+                .details("Please try again later")
+                .build();
+    }
+
+    private ErrorResponseDto badRequest() {
+        return ErrorResponseDto.builder()
                         .timestamp(Instant.now())
                         .status(HttpStatus.BAD_REQUEST.value())
                         .error("Invalid request parameters")
                         .message("Failed to process data - Invalid request parameters")
                         .details("Please check the data and try again")
-                        .build()
-        );
+                        .build();
     }
 }

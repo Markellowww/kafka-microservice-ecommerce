@@ -1,7 +1,5 @@
 package com.markellowww.processing.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markellowww.processing.dto.OrderDto;
 import com.markellowww.processing.services.OrderService;
 import org.slf4j.Logger;
@@ -18,27 +16,24 @@ import org.springframework.web.bind.annotation.*;
 public class ProcessingController {
     private static final Logger logger = LoggerFactory.getLogger(ProcessingController.class);
 
-    private final ObjectMapper objectMapper;
     private final OrderService orderService;
 
-    public ProcessingController(ObjectMapper objectMapper,
-                                OrderService orderService) {
-        this.objectMapper = objectMapper;
+    public ProcessingController(OrderService orderService) {
         this.orderService = orderService;
     }
 
     @PostMapping("/process/orders")
-    public ResponseEntity<String> processOrder(@RequestBody String orderJson) throws JsonProcessingException {
-        OrderDto orderDto = objectMapper.readValue(orderJson, OrderDto.class);
-        logger.debug("Received order for processing: {}", orderDto.getOrderId());
+    public ResponseEntity<String> processOrder(@RequestBody String orderJson) {
+        logger.debug("Received order for processing: {}", orderJson);
+        OrderDto orderDto = orderService.deserializeOrderDto(orderJson);
         orderService.createOrder(orderDto);
-        return ResponseEntity.ok(objectMapper.writeValueAsString(orderDto));
+        return ResponseEntity.ok(orderJson);
     }
 
     @GetMapping("process/orders/{orderId}")
-    public ResponseEntity<String> getOrder(@PathVariable Long orderId) throws JsonProcessingException {
+    public ResponseEntity<String> getOrder(@PathVariable Long orderId) {
         logger.debug("Fetching order with ID: {}", orderId);
         OrderDto orderDto = orderService.getOrder(orderId);
-        return ResponseEntity.ok(objectMapper.writeValueAsString(orderDto));
+        return ResponseEntity.ok(orderService.serializeOrderDto(orderDto));
     }
 }

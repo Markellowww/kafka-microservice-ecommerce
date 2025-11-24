@@ -1,10 +1,10 @@
 package com.markellowww.kafgen.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markellowww.kafgen.exceptions.OrderSerializationException;
 import com.markellowww.kafgen.models.Order;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.errors.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.KafkaException;
@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * @author Markelloww
@@ -47,29 +48,26 @@ public class OrderService {
             );
 
             kafkaTemplate.send(producerRecord).get(10, TimeUnit.SECONDS);
-
-            logger.debug("Order sent to Kafka successfully: {}", order.getOrderId());
-
+        } catch (KafkaException e) {
+            throw new KafkaException("Failed produce order to Kafka: " + order.getOrderId(), e);
+        } catch (JsonProcessingException e) {
+            throw new OrderSerializationException("Order deserialization failed", e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new KafkaException("Thread was interrupted while sending order to Kafka: " + order.getOrderId(), e);
-        } catch (TimeoutException e) {
-            throw new KafkaException("Timeout while sending order to Kafka: " + order.getOrderId(), e);
         } catch (ExecutionException e) {
             throw new KafkaException("Failed to send order to Kafka: " + order.getOrderId(), e.getCause());
-        } catch (Exception e) {
-            throw new KafkaException("Failed to send order to Kafka: " + order.getOrderId(), e);
+        } catch (TimeoutException e) {
+            throw new KafkaException("Timeout while sending order to Kafka: " + order.getOrderId(), e.getCause());
         }
+
+        logger.debug("Order sent to Kafka successfully: {}", order.getOrderId());
     }
 
-    public String serializeOrder(Order order) {
-        try {
-            logger.debug("Starting to serialize the received JSON order");
-            String orderJson = objectMapper.writeValueAsString(order);
-            logger.debug("Order {} was successfully serialized", order.getOrderId());
-            return orderJson;
-        } catch (Exception e) {
-            throw new OrderSerializationException("Order deserialization failed", e);
-        }
+    public String serializeOrder(Order order) throws JsonProcessingException {
+        logger.debug("Starting to serialize the received JSON order");
+        String orderJson = objectMapper.writeValueAsString(order);
+        logger.debug("Order {} was successfully serialized", order.getOrderId());
+        return orderJson;
     }
 }

@@ -1,10 +1,14 @@
 package com.markellowww.processing.services;
 
-import com.markellowww.processing.models.mappers.OrderMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markellowww.processing.dto.OrderDto;
 import com.markellowww.processing.exceptions.OrderCreationException;
+import com.markellowww.processing.exceptions.OrderDeserializationException;
 import com.markellowww.processing.exceptions.OrderFindingException;
+import com.markellowww.processing.exceptions.OrderSerializationException;
 import com.markellowww.processing.models.Order;
+import com.markellowww.processing.models.mappers.OrderMapper;
 import com.markellowww.processing.repositories.OrderRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +29,7 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
+    private final ObjectMapper objectMapper;
 
     public void createOrder(OrderDto orderDto) {
         logger.info("Starting order creation process for customer: {}", orderDto.getCustomerId());
@@ -76,6 +81,28 @@ public class OrderService {
 
         } catch (Exception e) {
             throw new OrderFindingException(String.format("Error occurred while fetching order %s: ", orderId), e);
+        }
+    }
+
+    public String serializeOrderDto(OrderDto orderDto) {
+        try {
+            logger.debug("Starting to serialize the received JSON order");
+            String orderJson = objectMapper.writeValueAsString(orderDto);
+            logger.debug("Order {} was successfully serialized", orderDto.getOrderId());
+            return orderJson;
+        } catch (JsonProcessingException e) {
+            throw new OrderSerializationException("Failed to serialize order %s".formatted(orderDto.getOrderId()), e);
+        }
+    }
+
+    public OrderDto deserializeOrderDto(String orderJson) {
+        try {
+            logger.debug("Starting to deserialize the received order");
+            OrderDto orderDto = objectMapper.readValue(orderJson, OrderDto.class);
+            logger.debug("Order {} was successfully deserialized", orderDto.getOrderId());
+            return orderDto;
+        } catch (JsonProcessingException e) {
+            throw new OrderDeserializationException("Failed to deserialize order %s".formatted(orderJson), e);
         }
     }
 }

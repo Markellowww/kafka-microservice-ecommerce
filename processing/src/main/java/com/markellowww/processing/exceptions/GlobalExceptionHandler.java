@@ -1,5 +1,6 @@
 package com.markellowww.processing.exceptions;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.markellowww.processing.dto.ErrorResponseDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,15 +22,32 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDto> handleGenericException(Exception e) {
         logger.warn("Exception error: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(internalServerError());
+    }
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                ErrorResponseDto.builder()
-                        .timestamp(Instant.now())
-                        .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                        .error("Internal Server Error")
-                        .message("An unexpected error occurred")
-                        .details("Please contact support if the problem persists")
-                        .build()
-        );
+    @ExceptionHandler(JsonProcessingException.class)
+    public ResponseEntity<ErrorResponseDto> handleJsonProcessingException(JsonProcessingException e) {
+        logger.warn("JsonProcessingException error: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(badRequest());
+    }
+
+    private ErrorResponseDto internalServerError() {
+        return ErrorResponseDto.builder()
+                .timestamp(Instant.now())
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .error("Internal Server Error")
+                .message("An unexpected error occurred")
+                .details("Please contact support if the problem persists")
+                .build();
+    }
+
+    private ErrorResponseDto badRequest() {
+        return ErrorResponseDto.builder()
+                .timestamp(Instant.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error("Invalid request parameters")
+                .message("Failed to process data - Invalid request parameters")
+                .details("Please check the data and try again")
+                .build();
     }
 }
